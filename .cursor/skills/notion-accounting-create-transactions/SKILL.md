@@ -21,11 +21,11 @@ description: Reads transaction details or receipts, extracts structured fields, 
    - Credit card receipts: the credit card account.
    - Points deduction: the points account, such as LINE points or credit card bonus points.
 
-   Search corresponding accounts in Notion `accountsDb`.  
-   If unclear, confirm with the user before proceeding.
+   Search corresponding accounts in Notion `accountsDataSourceId`.  
+   If unclear, stop and confirm with the user before proceeding.
 
 1. **Read recent transactions of the account(s)**
-   For each account, read recent 30 transactions from `transactionsDb`.  
+   For each account, read recent 30 transactions from `transactionsDataSourceId`.  
    Query transactions sorted by `Date` descending, and focus on records related by `From` or `To`.  
    Identify user habits for recording transactions and transactions that already exist in Notion.
 
@@ -46,21 +46,22 @@ description: Reads transaction details or receipts, extracts structured fields, 
    - Loan disbursement → `Transfer`
 
    This `Type` label is for workflow and summary only.  
-   Do not write a `Type` property to Notion `transactionsDb`; the effective type is determined by `From`/`To` and amount fields per schema skill.
+   Do not write a `Type` property to Notion `transactionsDataSourceId`; the effective type is determined by `From`/`To` and amount fields per schema skill.
 
 1. **Identify duplicate transactions**
    Decide whether extracted transactions already exist in Notion.  
    Time in Notion may not exactly match extracted transactions.  
    Steps:
-   - Search transactions covering extracted time range (with 24h tolerance at beginning and end).
-   - Check whether existing transactions have the same amount around neighboring time.
-
+   - Use a query for the whole extracted batch: compute min/max extracted datetime, then query once with  `Date` between `(min - 24h)` and `(max + 24h)`.
+   - In that same query, limit records to the target account direction (`From Account` -> `To Account`) for this  import.
+   - From that candidate set, check whether existing transactions have the same amount around neighboring time.
+ 
    For duplicate transactions, skip choosing store and category.  
 
 1. **Choose store**
    For transfer, no store.  
    For expense and income, choose store based on extracted transaction and user habit.  
-   Use a best-effort guess from history when needed. If still unclear, leave it empty.  
+   First, find an appropriate store based on history. If there is no direct match, search for a potential existing store. If no suitable existing store is found, create a new store. If the appropriate store is still unclear, leave it empty.  
 
 1. **Choose category**
    Each non-duplicate transaction must have a category.  
@@ -116,12 +117,12 @@ description: Reads transaction details or receipts, extracts structured fields, 
      - ❌ Duplicate: transaction already exists
      - 🤔 Need Confirm: include additional text for details requiring confirmation
 
-   If user asks for changes, apply changes and show summary again before creating transactions.  
+   If user asks for changes, apply changes and show above summary again before creating transactions.  
    Only create transactions after getting explicit user approval.
 
 1. **Create the transactions**  
    Create transactions in Notion.  
-   Map fields to `transactionsDb` schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`), and write long notes to page body/content.  
+   Map fields to `transactionsDataSourceId` schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`), and write long notes to page body/content.  
    Summarize result, such as:
    ```
    Success: 10

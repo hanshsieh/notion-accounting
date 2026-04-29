@@ -10,28 +10,28 @@ Use this skill whenever the user asks to read, write, or update the Notion datab
 
 ## Config
 
-1. Read database URLs from `assets/config.json`.
+1. Read data source IDs from `assets/config.json` (relative to this skill file directory).
 2. Expect this structure:
 
 ```json
 {
-  "currenciesDb": "https://www.notion.so/{db_id}?v={view_id}",
-  "accountsDb": "https://www.notion.so/{db_id}?v={view_id}",
-  "transactionsDb": "https://www.notion.so/{db_id}?v={view_id}",
-  "categoriesDb": "https://www.notion.so/{db_id}?v={view_id}"
+  "currenciesDataSourceId": "{data_source_id}",
+  "accountsDataSourceId": "{data_source_id}",
+  "transactionsDataSourceId": "{data_source_id}",
+  "categoriesDataSourceId": "{data_source_id}"
 }
 ```
 
-3. Validate all four keys exist and each value is a non-empty URL string.
-4. If `assets/config.json` does not exist or any URL is missing/invalid, stop and prompt the user to provide the database URLs before continuing.
+3. Validate all four keys exist and each value is a non-empty data source ID string.
+4. If `assets/config.json` does not exist or any ID is missing/invalid, stop and prompt the user to provide the data source IDs and create the file before continuing.
 
-## Currencies Database (`currenciesDb`)
+## Currencies Database (`currenciesDataSourceId`)
 
 Required property:
 - `Name` (`title`): currency code like `USD`.
 - `Exchange Rate` (`number`): Exchange rate. E.g. USD: 1, TWD: 31
 
-## Accounts Database (`accountsDb`)
+## Accounts Database (`accountsDataSourceId`)
 
 Required properties:
 - `Name` (`title`): unique account name identifier.
@@ -44,7 +44,7 @@ Usage requirements:
 - `Currency` must always relate to a page in `Currencies`.
 - Use `Name` as the canonical key when linking account-related records.
 
-## Categories Database (`categoriesDb`)
+## Categories Database (`categoriesDataSourceId`)
 
 Required property:
 - `Name` (`title`): category name taxonomy.
@@ -52,7 +52,7 @@ Required property:
 Usage requirements:
 - Categories should be reused by exact name matching.
 
-## Transactions Database (`transactionsDb`)
+## Transactions Database (`transactionsDataSourceId`)
 
 Required properties:
 - `Date` (`date`): (Required) transaction date/time.
