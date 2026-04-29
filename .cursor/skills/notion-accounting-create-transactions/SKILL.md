@@ -24,16 +24,17 @@ description: Reads transaction details or receipts, extracts structured fields, 
    Search corresponding accounts in Notion `accountsDataSourceId`.  
    If unclear, stop and confirm with the user before proceeding.
 
-1. **Read recent transactions of the account(s)**
-   For each account, read recent 30 transactions from `transactionsDataSourceId`.  
+1. **Read recent transactions of the account(s) for habit analysis**
+   For each account, read recent 60 transactions from `transactionsDataSourceId`.  
    Query transactions sorted by `Date` descending, and focus on records related by `From` or `To`.  
-   Identify user habits for recording transactions and transactions that already exist in Notion.
+   This query is for learning user recording habits (title style, category/store choices, transfer split patterns).  
+   This is NOT the duplicate-detection time window as mentioned below.
 
 1. **Split transactions when needed**
    Some extracted transactions need to be split.  
    If one extracted transaction uses multiple accounts, split it into multiple transactions.  
    For example, a payment using both credit card and points deduction should be split into 2 transactions.  
-   If a user paid 2 loans of the same bank in one transaction, it may need to be split into two transfer transactions. Use previous transactions to decide how to split.
+   If a user paid 2 loans of the same bank in one transaction, it may need to be split into two transfer transactions. Use recent transactions to decide how to split.
 
 1. **Choose transaction type**
    For each extracted transaction, choose the transaction type.  
@@ -55,6 +56,7 @@ description: Reads transaction details or receipts, extracts structured fields, 
    - Use a query for the whole extracted batch: compute min/max extracted datetime, then query once with  `Date` between `(min - 24h)` and `(max + 24h)`.
    - In that same query, limit records to the target account direction (`From Account` -> `To Account`) for this  import.
    - From that candidate set, check whether existing transactions have the same amount around neighboring time.
+   - Do not reuse the "recent 30 transactions" habit-analysis query result for duplicate detection.
  
    For duplicate transactions, skip choosing store and category.  
 
@@ -69,7 +71,7 @@ description: Reads transaction details or receipts, extracts structured fields, 
    Exception: transactions marked as duplicate do not require a final category because they will be skipped.
 
 1. **Summarize transactions to create**
-   Summarize transactions to create (from newest to oldest) for user review.  
+   Summarize the extracted transactions (from newest to oldest, after spliting) for user review.  
    DO NOT directly create transactions.  
    Template for each transaction (localize for user's language):
    ```
@@ -105,8 +107,6 @@ description: Reads transaction details or receipts, extracts structured fields, 
      If unclear, it can be left empty without changing status from `✅ OK`.
    - Title
      One-line short description of transaction.
-   - Skipped
-     If transaction already exists in Notion, use `Y`. Otherwise, leave it empty.
    - Note
      (Optional) Put supplemental info from extracted transaction.  
      Store it in the `body` of Notion transaction page.  
