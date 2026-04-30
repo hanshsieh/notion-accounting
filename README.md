@@ -1,5 +1,7 @@
 # Notion Accounting Cursor Plugin
 
+This repository provides a Cursor plugin for Notion-based personal accounting workflows, including reusable skills, plugin metadata, and MCP integration configuration.
+
 ## What this plugin includes
 
 - Skills under `skills/`
@@ -17,16 +19,10 @@
 
 ## Required setup
 
-### Config
-The schema skill expects a local config file at:
+### Notion data source setup
+Follow the step-by-step guide in:
 
-- `skills/notion-accounting-schema/assets/config.json`
-
-Create it from the example:
-
-- `skills/notion-accounting-schema/assets/config.example.json`
-
-Fill in your own Notion data source IDs before running accounting workflows.
+- [`docs/notion-data-sources-setup.md`](docs/notion-data-sources-setup.md)
 
 ### Notion MCP
 Set up the MCP server by following the instructions in
