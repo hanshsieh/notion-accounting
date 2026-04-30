@@ -39,12 +39,12 @@ description: Reads transaction details or receipts, extracts structured fields, 
 1. **Choose transaction type**
    For each extracted transaction, choose the transaction type.  
    Examples:
-   - Purchase / fee / outgoing payment → `Expense`
-   - Salary / refund to account → `Income`
-   - Move between user's own accounts → `Transfer`
-   - Paying credit card bills → `Transfer`
-   - Paying loan → `Transfer`
-   - Loan disbursement → `Transfer`
+   - Purchase / fee / outgoing payment -> `Expense`
+   - Salary / refund to account -> `Income`
+   - Move between user's own accounts -> `Transfer`
+   - Paying credit card bills -> `Transfer`
+   - Paying loan -> `Transfer`
+   - Loan disbursement -> `Transfer`
 
    This `Type` label is for workflow and summary only.  
    Do not write a `Type` property to Notion `transactionsDataSourceId`; the effective type is determined by `From`/`To` and amount fields per schema skill.
@@ -95,10 +95,10 @@ description: Reads transaction details or receipts, extracts structured fields, 
      `Income`, `Expense`, `Transfer` (summary only, not a Notion property)
    - Account
      For `Income` and `Expense`, should be the Notion account.  
-     For `Transfer`, should be 2 Notion accounts for transfer. Example: `City Bank(USD) → Cash`
+     For `Transfer`, should be 2 Notion accounts for transfer. Example: `City Bank(USD) -> Cash`
    - Amount
      For `Income`, `Expense`, and `Transfer` with same amount and currency, use format like `100 USD`.  
-     For `Transfer` with different amount or currency, use format like `10 USD → 300 TWD`
+     For `Transfer` with different amount or currency, use format like `10 USD -> 300 TWD`
    - Category
      Notion category for transaction.  
      This must be resolved before creation, except duplicates that are skipped.

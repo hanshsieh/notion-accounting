@@ -1,0 +1,19 @@
+{
+  "name": "notion-accounting",
+  "displayName": "Notion Accounting",
+  "version": "0.1.0",
+  "description": "Cursor plugin for personal accounting workflows in Notion.",
+  "repository": "https://github.com/hanshsieh/notion-accounting",
+  "author": {
+    "name": "hanshsieh"
+  },
+  "license": "MIT",
+  "keywords": [
+    "notion",
+    "accounting",
+    "finance"
+  ],
+  "skills": [
+    "skills"
+  ]
+}

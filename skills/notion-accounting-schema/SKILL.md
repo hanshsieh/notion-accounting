@@ -23,7 +23,7 @@ Use this skill whenever the user asks to read, write, or update the Notion datab
 ```
 
 3. Validate all four keys exist and each value is a non-empty data source ID string.
-4. If `assets/config.json` does not exist or any ID is missing/invalid, stop and prompt the user to provide the data source IDs and create the file before continuing.
+4. If `assets/config.json` does not exist or any ID is missing/invalid, stop and prompt the user to provide the data source IDs interactively and create the file before continuing. If the user provices a database URL, tries to find the associated data source ID.
 
 ## Currencies Database (`currenciesDataSourceId`)
 

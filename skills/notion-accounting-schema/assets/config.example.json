@@ -1,0 +1,6 @@
+{
+  "currenciesDataSourceId": "your-currencies-data-source-id",
+  "accountsDataSourceId": "your-accounts-data-source-id",
+  "transactionsDataSourceId": "your-transactions-data-source-id",
+  "categoriesDataSourceId": "your-categories-data-source-id"
+}
