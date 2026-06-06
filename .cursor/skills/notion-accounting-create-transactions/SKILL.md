@@ -71,7 +71,7 @@ description: Reads transaction details or receipts, extracts structured fields, 
    Exception: transactions marked as duplicate do not require a final category because they will be skipped.
 
 1. **Summarize transactions to create**
-   Summarize the extracted transactions (from newest to oldest, after spliting) for user review.  
+   Summarize the extracted transactions (from newest to oldest, after spliting, don't group by status) for user review.  
    DO NOT directly create transactions.  
    Template for each transaction (localize for user's language):
    ```
