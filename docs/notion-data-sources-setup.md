@@ -1,6 +1,6 @@
 # Notion Data Source Setup Guide
 
-This guide helps you create the Notion data sources required by this plugin from scratch.
+This guide helps you create the Notion data sources required by this project from scratch.
 
 ## Overview
 
@@ -110,7 +110,7 @@ Create `Transactions` with these properties:
 
 ## Transaction patterns (must follow)
 
-This plugin determines transaction type from `From`/`To` and amount fields:
+This project determines transaction type from `From`/`To` and amount fields:
 
 - `Expense`: `From` + `From Amount` filled, `To` + `To Amount` empty.
 - `Income`: `To` + `To Amount` filled, `From` + `From Amount` empty.
@@ -120,7 +120,7 @@ This plugin determines transaction type from `From`/`To` and amount fields:
 
 After all 4 data sources are created, copy their data source IDs into:
 
-- `skills/notion-accounting-schema/assets/config.json`
+- `.cursor/skills/notion-accounting-schema/assets/config.json`
 
 How to get each data source ID in Notion:
 
@@ -144,11 +144,11 @@ Use this structure:
 
 You can start from:
 
-- `skills/notion-accounting-schema/assets/config.example.json`
+- `.cursor/skills/notion-accounting-schema/assets/config.example.json`
 
 ## Validation checklist
 
-Before using the plugin, verify:
+Before using the project, verify:
 
 - All 4 data sources exist and names are clear.
 - Property names and types exactly match this guide.
