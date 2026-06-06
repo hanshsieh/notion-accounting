@@ -4,8 +4,7 @@ description: Reads transaction details or receipts, extracts structured fields, 
 ---
 ## Prerequisites
 
-- Use `../notion-accounting-schema/SKILL.md` to decide the Notion database location and schema.
-- Notion MCP or skill is available for creating and searching pages.
+- Use `{THIS_SKILL_FOLDER}/../notion-accounting-schema/SKILL.md` to decide the Notion database location and schema.
 - If image text is unclear, ask user for a clearer crop or missing fields before creating records.
 
 ## Workflow
@@ -26,6 +25,7 @@ description: Reads transaction details or receipts, extracts structured fields, 
 
 1. **Read recent transactions of the account(s) for habit analysis**
    For each account, read recent 60 transactions from `transactionsDataSourceId`.  
+   If you Notion MCP failed with authentication errors, stop and ask the user the configure the `.env` with the Notion token.  
    Query transactions sorted by `Date` descending, and focus on records related by `From` or `To`.  
    This query is for learning user recording habits (title style, category/store choices, transfer split patterns).  
    This is NOT the duplicate-detection time window as mentioned below.

@@ -10,7 +10,7 @@ Use this skill whenever the user asks to read, write, or update the Notion datab
 
 ## Config
 
-1. Read data source IDs from `assets/config.json` (relative to this skill file directory).
+1. Read data source IDs from `{THIS_SKILL_FOLDER}/assets/config.json`
 2. Expect this structure:
 
 ```json
