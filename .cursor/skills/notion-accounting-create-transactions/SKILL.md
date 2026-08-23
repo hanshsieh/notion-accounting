@@ -4,7 +4,8 @@ description: Reads transaction details or receipts, extracts structured fields, 
 ---
 ## Prerequisites
 
-- Use `{THIS_SKILL_FOLDER}/../notion-accounting-schema/SKILL.md` to decide the Notion database location and schema.
+- Use `{THIS_SKILL_FOLDER}/../notion-accounting-schema/SKILL.md` to decide the Notion database location, schema, and MCP tool usage.
+- Use connected **Notion** integration MCP (see schema skill).
 - If image text is unclear, ask user for a clearer crop or missing fields before creating records.
 
 ## Workflow
@@ -20,13 +21,14 @@ description: Reads transaction details or receipts, extracts structured fields, 
    - Credit card receipts: the credit card account.
    - Points deduction: the points account, such as LINE points or credit card bonus points.
 
-   Search corresponding accounts in Notion `accountsDataSourceId`.  
+   Search corresponding accounts in Notion using `notion-query-data-sources` against `accountsDataSourceId` (SQL `WHERE` on the title/`Name` property), or use `notion-search` when name matching is fuzzy.  
+   Keep each matched account's page URL/UUID for relation filters and writes.  
    If unclear, stop and confirm with the user before proceeding.
 
 1. **Read recent transactions of the account(s) for habit analysis**
-   For each account, read recent 60 transactions from `transactionsDataSourceId`.  
-   If you Notion MCP failed with authentication errors, stop and ask the user the configure the `.env` with the Notion token.  
-   Query transactions sorted by `Date` descending, and focus on records related by `From` or `To`.  
+   For each account, query the latest 60 transactions from `transactionsDataSourceId` with `notion-query-data-sources` in SQL mode.  
+   If Notion MCP fails with authentication or permission errors, stop and ask the user to reconnect Notion in Cursor settings.  
+   Sort by `Date` descending, and filter to records where the account appears in `From` or `To` (use the account page URL/UUID in the SQL `WHERE` clause).  
    This query is for learning user recording habits (title style, category/store choices, transfer split patterns).  
    This is NOT the duplicate-detection time window as mentioned below.
 
@@ -53,20 +55,21 @@ description: Reads transaction details or receipts, extracts structured fields, 
    Decide whether extracted transactions already exist in Notion.  
    Time in Notion may not exactly match extracted transactions.  
    Steps:
-   - Use a query for the whole extracted batch: compute min/max extracted datetime, then query once with  `Date` between `(min - 24h)` and `(max + 24h)`.
-   - In that same query, limit records to the target account direction (`From Account` -> `To Account`) for this  import.
+   - Use one SQL query for the whole extracted batch: compute min/max extracted datetime, then query once with `Date` between `(min - 24h)` and `(max + 24h)` using `notion-query-data-sources`.
+   - In that same query, limit records to the target account direction (`From` account and/or `To` account) for this import.
    - From that candidate set, check whether existing transactions have the same amount around neighboring time.
-   - Do not reuse the "recent 30 transactions" habit-analysis query result for duplicate detection.
+   - Do not reuse the "recent 60 transactions" habit-analysis query result for duplicate detection.
  
    For duplicate transactions, skip choosing store and category.  
 
 1. **Choose store**
    For transfer, no store.  
    For expense and income, choose store based on extracted transaction and user habit.  
-   First, find an appropriate store based on history. If there is no direct match, search for a potential existing store. If no suitable existing store is found, create a new store. If the appropriate store is still unclear, leave it empty.  
+   First, find an appropriate store based on history (query distinct `Store` values from recent transactions or categories). If there is no direct match, search for a potential existing store. If no suitable existing store is found, create a new store option with `notion-update-data-source` when needed, or set it directly on create if allowed. If the appropriate store is still unclear, leave it empty.  
 
 1. **Choose category**
    Each non-duplicate transaction must have a category.  
+   Resolve categories by querying `categoriesDataSourceId` (exact `Name` match) or from recent transaction habits.  
    Choose category based on transaction and user habit. If unclear, use a generic category like `Other` if available. If not available, leave it empty and mark `🤔 Need Confirm`.
    Exception: transactions marked as duplicate do not require a final category because they will be skipped.
 
@@ -109,7 +112,7 @@ description: Reads transaction details or receipts, extracts structured fields, 
      One-line short description of transaction.
    - Note
      (Optional) Put supplemental info from extracted transaction.  
-     Store it in the `body` of Notion transaction page.  
+     Store it in the page `content` when creating/updating the Notion transaction page.  
      Do not include PII such as credit card number.
    - Status
      Status of transaction, one of:
@@ -121,8 +124,9 @@ description: Reads transaction details or receipts, extracts structured fields, 
    Only create transactions after getting explicit user approval.
 
 1. **Create the transactions**  
-   Create transactions in Notion.  
-   Map fields to `transactionsDataSourceId` schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`), and write long notes to page body/content.  
+   Create approved rows with `notion-create-pages`, parent set to `transactionsDataSourceId`.  
+   Map fields to the fetched schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`), using relation arrays of page URLs/UUIDs and date split properties per the schema skill.  
+   Put long notes in each page's `content`.  
    Summarize result, such as:
    ```
    Success: 10

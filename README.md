@@ -1,20 +1,27 @@
 # Notion Accounting
 
-This repository provides Cursor skills and MCP configuration for Notion-based personal accounting workflows.
+This repository provides Cursor skills for Notion-based personal accounting workflows.
 
 ## What this project includes
 
 - Skills under `.cursor/skills/`
-- Notion MCP server config in `.cursor/mcp.json`
+- Setup docs for Notion data sources in `docs/`
 
 ## Use in Cursor
 
 1. Clone this repository and open it as a Cursor project.
-2. Copy `.env.example` to `.env` and set your Notion integration token.
+2. Connect **Notion** in Cursor (**Settings → MCP** or **Integrations**).
 3. Follow the Notion data source setup guide in [`docs/notion-data-sources-setup.md`](docs/notion-data-sources-setup.md).
-4. Restart Cursor, or run **Developer: Reload Window**, so skills and MCP servers are picked up.
+4. Restart Cursor, or run **Developer: Reload Window**, so skills are picked up.
 
 ## Required setup
+
+### Notion integration
+
+This project uses Cursor's **Notion** workspace plugin MCP (`notion-fetch`, `notion-query-data-sources`, `notion-create-pages`, etc.).
+
+- Connect Notion in Cursor and grant access to the workspace that contains your accounting databases.
+- You do **not** need a local `NOTION_TOKEN` or project-level MCP server config.
 
 ### Notion data source setup
 
@@ -22,11 +29,17 @@ Follow the step-by-step guide in:
 
 - [`docs/notion-data-sources-setup.md`](docs/notion-data-sources-setup.md)
 
-### Notion MCP
+Save the four data source IDs to:
 
-Do **not** use the global hosted Notion MCP server setup described in
-[Connecting to Notion MCP](https://developers.notion.com/guides/mcp/get-started-with-mcp).
+- `.cursor/skills/notion-accounting-schema/assets/config.json`
 
-This project depends on filtering data source pages by property values. The
-global hosted Notion MCP server does not support that capability yet, which
-would greatly reduce its effectiveness.
+Start from:
+
+- `.cursor/skills/notion-accounting-schema/assets/config.example.json`
+
+## Skills
+
+| Skill | Purpose |
+| --- | --- |
+| `notion-accounting-schema` | Database schema, config, and Notion MCP read/write patterns |
+| `notion-accounting-create-transactions` | Import receipts/statements into the Transactions database |

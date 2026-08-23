@@ -131,6 +131,12 @@ How to get each data source ID in Notion:
 5. Click `Copy data source ID`.
 6. Paste it into the matching key in `config.json`.
 
+Alternative via Cursor Notion MCP:
+
+1. Paste the database URL to the agent (or call `notion-fetch` yourself).
+2. Read the `<data-source url="collection://...">` tag in the response.
+3. Save the UUID portion as the matching key in `config.json`.
+
 Use this structure:
 
 ```json
@@ -150,6 +156,7 @@ You can start from:
 
 Before using the project, verify:
 
+- Notion is connected in Cursor and can access these databases.
 - All 4 data sources exist and names are clear.
 - Property names and types exactly match this guide.
 - Relations are linked to the correct target data source.

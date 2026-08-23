@@ -8,6 +8,104 @@ description: Defines how the Notion databases should be structured and used for 
 This skill illustrates how to use Notion databases for personal accounting.  
 Use this skill whenever the user asks to read, write, or update the Notion databases for transactions.
 
+## Notion MCP
+
+Use Cursor's **Notion** integration (workspace plugin MCP), not the legacy `@notionhq/notion-mcp-server`.
+
+### Setup
+
+1. In Cursor, open **Settings → MCP** (or **Integrations**) and connect **Notion**.
+2. Grant the integration access to the workspace that contains the accounting databases.
+3. If a Notion MCP call fails with authentication or permission errors, stop and ask the user to reconnect Notion in Cursor before continuing.
+
+### Tools to use
+
+| Task | Tool |
+| --- | --- |
+| Resolve database/data source IDs and read property schema | `notion-fetch` |
+| Search workspace by name/keyword | `notion-search` |
+| Query/filter/sort database rows | `notion-query-data-sources` |
+| Create transaction/account/category rows | `notion-create-pages` |
+| Update properties or page body | `notion-update-page` |
+| Add new `Store` select options | `notion-update-data-source` |
+
+Before the first read or write against a data source, call `notion-fetch` on that data source (or its parent database URL) and use the exact property names/types from the fetched schema.
+
+### Data source URLs
+
+Config stores bare data source UUIDs. When calling MCP tools, prefix each ID as:
+
+```text
+collection://{data_source_id}
+```
+
+Example: if `transactionsDataSourceId` is `f336d0bc-b841-465b-8045-024475c079dd`, use `collection://f336d0bc-b841-465b-8045-024475c079dd` in queries and as the table name in SQL.
+
+If the user provides a Notion database URL instead of a data source ID, call `notion-fetch` on the URL and read the `<data-source url="collection://...">` tag for the correct ID.
+
+### Querying (`notion-query-data-sources`)
+
+Prefer **SQL mode** (default) for filtered reads such as recent transactions, duplicate checks, and account lookup.
+
+General shape:
+
+```json
+{
+  "data": {
+    "data_source_urls": ["collection://YOUR_DATA_SOURCE_ID"],
+    "query": "SELECT url, \"Title\", \"date:Date:start\" FROM \"collection://YOUR_DATA_SOURCE_ID\" ORDER BY datetime(\"date:Date:start\") DESC LIMIT 60",
+    "params": []
+  }
+}
+```
+
+Guidelines:
+
+- Quote property names exactly as shown in `notion-fetch` schema output.
+- Date properties use split columns such as `"date:Date:start"` and `"date:Date:is_datetime"`.
+- For time comparisons or ordering, normalize with `datetime(...)` or `date(...)`.
+- Prefer `?` placeholders via `params` instead of string interpolation.
+- Relation filters/compare values using related page URLs or UUIDs from `notion-fetch` / query results.
+- Checkbox values use `"__YES__"` / `"__NO__"`.
+- Paginate with `LIMIT`/`OFFSET` or follow `has_more` / `next_cursor` when using view mode.
+
+View mode is acceptable when an existing database view already encodes the needed filters and sorts.
+
+### Creating rows (`notion-create-pages`)
+
+Create database rows under the target data source:
+
+```json
+{
+  "parent": { "data_source_id": "YOUR_DATA_SOURCE_ID" },
+  "pages": [
+    {
+      "properties": {
+        "Title": "Bread and milk",
+        "date:Date:start": "2026-04-29T08:00:00",
+        "date:Date:is_datetime": 1,
+        "From Amount": 12,
+        "From": ["https://www.notion.so/..."],
+        "Category": ["category-page-url-or-id"],
+        "Store": "Walmart"
+      },
+      "content": "Optional long notes in Notion-flavored Markdown"
+    }
+  ]
+}
+```
+
+Guidelines:
+
+- Use the fetched title property name (often `Title`, not `title`).
+- Put long notes in `content`, not in a database property.
+- Relation properties are arrays of page URLs or UUIDs.
+- New `Store` select options can be set directly on create; if Notion rejects an unknown option, add it with `notion-update-data-source` first.
+
+### Updating rows (`notion-update-page`)
+
+Use `update_properties` for property changes and `insert_content` / `update_content` for page body edits.
+
 ## Config
 
 1. Read data source IDs from `{THIS_SKILL_FOLDER}/assets/config.json`
@@ -23,7 +121,7 @@ Use this skill whenever the user asks to read, write, or update the Notion datab
 ```
 
 3. Validate all four keys exist and each value is a non-empty data source ID string.
-4. If `assets/config.json` does not exist or any ID is missing/invalid, stop and prompt the user to provide the data source IDs interactively and create the file before continuing. If the user provices a database URL, tries to find the associated data source ID.
+4. If `assets/config.json` does not exist or any ID is missing/invalid, stop and prompt the user to provide the data source IDs interactively and create the file before continuing. If the user provides a database URL, use `notion-fetch` to find the associated data source ID.
 
 ## Currencies Database (`currenciesDataSourceId`)
 
