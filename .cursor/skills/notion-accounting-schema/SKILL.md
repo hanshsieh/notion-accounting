@@ -27,7 +27,7 @@ Use Cursor's **Notion** integration (workspace plugin MCP), not the legacy `@not
 | Query/filter/sort database rows | `notion-query-data-sources` |
 | Create transaction/account/category rows | `notion-create-pages` |
 | Update properties or page body | `notion-update-page` |
-| Add new `Store` select options | `notion-update-data-source` |
+| Add new `Store` select options | `notion-create-pages` / `notion-update-page` (set the store name; Notion auto-creates the option) |
 
 Before the first read or write against a data source, call `notion-fetch` on that data source (or its parent database URL) and use the exact property names/types from the fetched schema.
 
@@ -100,7 +100,9 @@ Guidelines:
 - Use the fetched title property name (often `Title`, not `title`).
 - Put long notes in `content`, not in a database property.
 - Relation properties are arrays of page URLs or UUIDs.
-- New `Store` select options can be set directly on create; if Notion rejects an unknown option, add it with `notion-update-data-source` first.
+- New `Store` select options: set the store name string on `notion-create-pages` or `notion-update-page`. Notion creates missing select options automatically when the page is written.
+- **Forbidden**: Do not use `notion-update-data-source` or `ALTER COLUMN "Store" SET SELECT(...)` to add or change `Store` options. That replaces the entire option list and can delete existing stores if the fetched schema is incomplete or stale.
+- `Store` allows at most **100** options. If create/update fails because the limit is reached, leave `Store` empty and ask the user which existing option to reuse or which option to remove in the Notion UI.
 
 ### Updating rows (`notion-update-page`)
 
@@ -173,5 +175,5 @@ Usage requirements:
   - For expense:
     - `From`, `From Amount` are non-empty
     - `To`, `To Amount` are empty
-- `Store` options and `Tags` values may be created on demand.
+- `Store` select options are created automatically when a transaction row sets a new store name on create/update (max 100 options). `Tags` values may be created on demand on create.
 - Long notes should be written to page content/body, not stored as a database property. Only use `Title` for one line short description.

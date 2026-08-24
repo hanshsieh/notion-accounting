@@ -65,7 +65,9 @@ description: Reads transaction details or receipts, extracts structured fields, 
 1. **Choose store**
    For transfer, no store.  
    For expense and income, choose store based on extracted transaction and user habit.  
-   First, find an appropriate store based on history (query distinct `Store` values from recent transactions or categories). If there is no direct match, search for a potential existing store. If no suitable existing store is found, create a new store option with `notion-update-data-source` when needed, or set it directly on create if allowed. If the appropriate store is still unclear, leave it empty.  
+   First, find an appropriate store based on history (query distinct `Store` values from recent transactions or categories). If there is no direct match, search for a potential existing store.  
+   Include the chosen store name in the summary even when it is not in the fetched `Store` select options — do not skip `Store` or leave it empty just because the option is missing. New options are added automatically when the transaction row is written (see **Create the transactions**).  
+   If the appropriate store is still unclear after searching habits, leave it empty.  
 
 1. **Choose category**
    Each non-duplicate transaction must have a category.  
@@ -126,7 +128,10 @@ description: Reads transaction details or receipts, extracts structured fields, 
 1. **Create the transactions**  
    Create approved rows with `notion-create-pages`, parent set to `transactionsDataSourceId`.  
    Map fields to the fetched schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`), using relation arrays of page URLs/UUIDs and date split properties per the schema skill.  
+   Set `Store` to the chosen store name string even when that name is not in the current schema options; Notion creates missing select options automatically on page create/update.  
    Put long notes in each page's `content`.  
+   **Forbidden**: Do not call `notion-update-data-source` or `ALTER COLUMN "Store" SET SELECT(...)` to add `Store` options. That replaces the entire option list and can delete existing stores if the fetched schema is incomplete or stale.  
+   If `notion-create-pages` rejects an unknown `Store` value (rare), create the row without `Store`, then set `Store` with `notion-update-page`. If that also fails (for example the 100-option limit), leave `Store` empty and note it in the result summary for manual follow-up.  
    Summarize result, such as:
    ```
    Success: 10
