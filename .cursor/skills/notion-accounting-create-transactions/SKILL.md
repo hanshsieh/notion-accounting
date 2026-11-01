@@ -105,8 +105,12 @@ For a single receipt or one-off payment (not a full statement), focus on create 
    - **Skip** and **Delete** actions: do not choose a new store.
 
    First, find an appropriate store based on history (query distinct `Store` values from recent transactions or categories). If there is no direct match, search for a potential existing store.  
-   Include the chosen store name in the summary even when it is not in the fetched `Store` select options — do not skip `Store` or leave it empty just because the option is missing. New options are added automatically when the transaction row is written (see **Apply approved changes**).  
+   Cross-check proposed `Store` names against the `Store` options from `notion-fetch` on `transactionsDataSourceId`. If a proposed store is not in that list, still show the intended name in the summary but flag it under **Schema additions (manual in Notion)** (see **Summarize proposed changes**).  
    If the appropriate store is still unclear after searching habits, leave it empty.
+
+1. **Choose tags (when used)**
+   Only set `Tags` when user habit or the source clearly calls for them (for example `悠遊卡加值`, `刷卡`, `蝦皮`).  
+   Cross-check each proposed tag against the `Tags` options from `notion-fetch`. Tags not in the schema must be listed under **Schema additions (manual in Notion)** before apply.
 
 1. **Choose category**
    Each **Create** action must have a category.  
@@ -207,18 +211,34 @@ For a single receipt or one-off payment (not a full statement), focus on create 
    Proposed: Create 8, Update 3, Delete 1, Skip 12
    ```
 
+   **Schema additions (manual in Notion)**  
+   After the change list, if any proposed **Create** or **Update** uses a `Store` or `Tags` value that is not in the schema from `notion-fetch`, add a dedicated section (do not bury it in a single line). List each missing value and which transactions need it. Ask the user to choose before you write:
+   - Add the option(s) in Notion, then confirm **ready to apply** (or ask you to re-fetch and verify), or
+   - Apply now **without** those properties (keep merchant in `Title` / page `content`), or
+   - Map to an existing `Store` / `Tags` option they name.
+
+   Example:
+   ```
+   Schema additions (manual in Notion)
+   Store (select): 金興發生活百貨 — needed for Create 2026/09/13 99 TWD
+   Tags (multi_select): (none)
+   Please add in Notion or tell me how to proceed before I apply creates/updates.
+   ```
+
+   If the user approves apply while additions are still missing, omit only the failing properties and say so in the result summary.
+
    If the user asks for changes, apply them and show the summary again before writing to Notion.  
-   Only apply changes after explicit user approval.
+   Only apply changes after explicit user approval (including resolution of schema additions when listed).
 
 1. **Apply approved changes**
 
    **Create**  
    Create approved rows with `notion-create-pages`, parent set to `transactionsDataSourceId`.  
-   Map fields to the fetched schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`), using relation arrays of page URLs/UUIDs and date split properties per the schema skill.  
-   Set `Store` to the chosen store name string even when that name is not in the current schema options; Notion creates missing select options automatically on page create/update.  
+   Map fields to the fetched schema (for example: `Date`, `From`, `To`, `From Amount`, `To Amount`, `Category`, `Title`, `Store`, `Tags`), using relation arrays of page URLs/UUIDs and date split properties per the schema skill.  
+   Set `Store` and `Tags` only when each value is present in the schema from `notion-fetch` (see schema skill).  
    Put long notes in each page's `content`.  
-   **Forbidden**: Do not call `notion-update-data-source` or `ALTER COLUMN "Store" SET SELECT(...)` to add `Store` options. That replaces the entire option list and can delete existing stores if the fetched schema is incomplete or stale.  
-   If `notion-create-pages` rejects an unknown `Store` value (rare), create the row without `Store`, then set `Store` with `notion-update-page`. If that also fails (for example the 100-option limit), leave `Store` empty and note it in the result summary for manual follow-up.
+   **Forbidden**: Do not call `notion-update-data-source` or `ALTER COLUMN "Store" SET SELECT(...)` to add `Store` options unless the user explicitly requests that migration with a verified full option list.  
+   If `notion-create-pages` or `notion-update-page` rejects an unknown `Store` or `Tags` value, create or update the row without that property, keep the merchant in `Title` / `content`, and note in the result summary that the user should add the option in Notion and set the property manually (or re-run after they add it).
 
    **Update**  
    Update approved rows with `notion-update-page` and `command: "update_properties"` for changed properties.  
